@@ -1,0 +1,166 @@
+- hosts: localhost
+  connection: local
+  vars:
+    avi_credentials:
+      controller: "{{ controller_ip }}"
+      username: admin
+      password: "{{ password }}"
+      api_version: "{{ api_version  }}"
+    tenant: admin
+    smtp_from_email: admin@avicontroller.net
+    sa_account_name: sa-gcp-avi-arch
+    gcp_cloud_name: gcp-cloud-twoarm
+    gcp_availability_zones:
+      - "{{gcp_region}}-a"
+      - "{{gcp_region}}-b"
+      - "{{gcp_region}}-c"
+    vip_network_name: "VIP Network"
+    dns_profile_name: "aviarchitects"
+    ipam_profile_name: "avi-internal-ipam"
+  roles:
+    - role: avinetworks.avisdk
+  tasks:
+    - include_vars: config_vars.yaml
+    - name: Check Avi Controller Status
+      uri:
+        url: "https://{{ avi_credentials.controller }}/api/initial-data"
+        validate_certs: no
+        status_code: 200
+      register: result
+      until: result.status == 200
+      retries: 300
+      delay: 10  
+    - name: Update default password
+      avi_useraccount:
+        controller: "{{ avi_credentials.controller }}"
+        username: "{{ avi_credentials.username  }}"
+        password: "{{ avi_credentials.password }}"
+        old_password: "{{ avi_default_pass }}"
+        api_version: "{{ avi_credentials.api_version  }}"
+      ignore_errors: yes
+    - name: System configuration 1
+      avi_systemconfiguration:
+        avi_credentials: "{{ avi_credentials }}"
+        state: present
+        dns_configuration:
+          server_list:
+            - addr: 8.8.8.8
+              type: V4
+            - addr: 8.8.4.4
+              type: V4
+        ntp_configuration:
+          ntp_server_list:
+            - addr: 0.pool.ntp.org
+              type: DNS
+            - addr: 1.pool.ntp.org
+              type: DNS
+            - addr: 2.pool.ntp.org
+              type: DNS
+            - addr: 3.pool.ntp.org
+              type: DNS
+              #ignore_errors: yes  
+    - name: System configuration 2
+      avi_systemconfiguration: 
+        avi_credentials: "{{ avi_credentials }}"
+        state: present 
+        email_configuration:
+          disable_tls: false
+          from_email: '{{ smtp_from_email }}'
+          mail_server_port: 25
+          smtp_type: "SMTP_LOCAL_HOST"
+          mail_server_name: localhost
+        global_tenant_config:
+          se_in_provider_context: true
+          tenant_access_to_provider_se: true
+          tenant_vrf: false
+        welcome_workflow_complete: true
+    - name: Set passphrase 
+      avi_backupconfiguration:
+        avi_credentials: "{{ avi_credentials }}"
+        state: present
+        backup_passphrase: "{{ avi_credentials.password }}"
+        save_local: true
+        maximum_backups_stored: 4
+        name: Backup-Configuration
+    - name: Creade cloud connector user GCP
+      avi_cloudconnectoruser:
+        avi_credentials: "{{ avi_credentials }}"
+        name: "{{ sa_account_name }}"
+        gcp_credentials:
+          service_account_keyfile_data: "{{ lookup('file', '../{{ keyfile_data}}') | string }}"
+    - name: Create cloud
+      avi_cloud:
+        avi_credentials: "{{ avi_credentials }}"
+        vtype: CLOUD_GCP
+        name: "{{ gcp_cloud_name }}"
+        gcp_configuration:
+          region_name: "{{ gcp_region }}"
+          zones: "{{ gcp_availability_zones }}"
+          se_project_id: "{{ se_project_id }}"
+          network_config:
+            config: TWO_ARM_MODE
+            two_arm:
+              frontend_data_vpc_subnet_name: "{{ frontend_data_vpc_subnet_name }}" 
+              management_vpc_subnet_name: "{{ management_vpc_subnet_name }}"
+              backend_data_vpc_subnet_name: "{{ backend_data_vpc_subnet_name }}"
+              frontend_data_vpc_network_name: "{{ frontend_data_vpc_network_name }}"
+              management_vpc_network_name: "{{ management_vpc_network_name }}"
+              backend_data_vpc_network_name: "{{ backend_data_vpc_network_name }}"
+          cloud_credentials_ref: "/api/cloudconnectoruser?name={{ sa_account_name }}"
+          vip_allocation_strategy:
+            mode: ROUTES
+    - name: Create VIP Network
+      avi_network:
+        avi_credentials: "{{ avi_credentials }}"
+        name: "{{ vip_network_name }}"
+        cloud_ref: "/api/cloud?name={{ gcp_cloud_name }}"
+        configured_subnets:
+        - prefix:
+            ip_addr:
+              addr: "{{ vip_network_cidr | ansible.netcommon.ipaddr('network')  }}"
+              type: V4
+            mask: "{{ vip_network_cidr.split('/')[1] }}"
+          static_ip_ranges:
+          - range:
+              begin:
+                addr: "{{ vip_network_cidr | ansible.netcommon.nthhost(100) }}"
+                type: V4
+              end:
+                addr: "{{ vip_network_cidr | ansible.netcommon.nthhost(200) }}"
+                type: V4
+            type: STATIC_IPS_FOR_VIP_AND_SE
+    - name: Create DNS profile
+      avi_ipamdnsproviderprofile:
+        avi_credentials: "{{ avi_credentials }}"
+        name: "{{ dns_profile_name }}"
+        type: IPAMDNS_TYPE_INTERNAL_DNS
+        internal_profile:
+          dns_service_domain:
+            - num_dns_ip: 1
+              domain_name: "{{ domain_name }}"
+    - name: Create IPAM profile
+      avi_ipamdnsproviderprofile:
+        avi_credentials: "{{ avi_credentials }}"
+        name: "{{ ipam_profile_name }}"
+        type: IPAMDNS_TYPE_INTERNAL
+        internal_profile:
+          usable_networks:
+            - nw_ref: "/api/network?name={{ vip_network_name }}"
+    - name: Update cloud
+      avi_cloud:
+        avi_credentials: "{{ avi_credentials }}"
+        name: "{{ gcp_cloud_name }}"
+        avi_api_update_method: patch
+        avi_api_patch_op: add
+        ipam_provider_ref: "/api/ipamdnsproviderprofile?name={{ ipam_profile_name }}"
+        dns_provider_ref: "/api/ipamdnsproviderprofile?name={{ dns_profile_name }}"
+        vtype: CLOUD_GCP
+    - name: Update SEG instance type
+      avi_serviceenginegroup:
+        avi_credentials: "{{ avi_credentials }}"
+        name: "Default-Group"
+        cloud_ref: "/api/cloud?name={{ gcp_cloud_name }}"
+        avi_api_update_method: patch
+        avi_api_patch_op: replace
+        instance_flavor: "{{ se_machine_type }}"
+

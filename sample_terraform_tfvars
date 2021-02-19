@@ -1,0 +1,16 @@
+avi_admin_password = "AviNetworks123!"
+avi_default_password = "58NFaGDJm(PJH0G"
+avi_api_version = "20.1.3"
+pod_count = 1
+id = "avigcp"
+owner = 
+
+project_id = 
+gcp_region = 
+gcp_zone = 
+controller_image = 
+
+gcp_key_file = 
+vip_network_cidr = "192.168.1.0/24"
+domain_name = 
+se_machine_type = "n1-standard-4"

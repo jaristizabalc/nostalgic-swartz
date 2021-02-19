@@ -1,0 +1,12 @@
+#cloud-config
+hostname: ${hostname}
+manage_etc_hosts: False
+
+users:
+  - default
+
+bootcmd:
+  - wget -O /tmp/register.py http://${jumpbox_ip}/register.py
+  - chmod +x /tmp/register.py
+  - hostname ${hostname}
+  - python /tmp/register.py ${jumpbox_ip}
