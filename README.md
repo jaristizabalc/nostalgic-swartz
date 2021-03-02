@@ -112,7 +112,7 @@ Note: You didn't specify an "-out" parameter to save this plan, so
 Terraform can't guarantee that exactly these actions will be performed
 if "terraform apply" is subsequently run
 ```
-7. Apply the terraform plan
+8. Apply the terraform plan
 ```
 aviadmin@avitools:~/nostalgic-swartz# terraform apply
 
@@ -123,5 +123,10 @@ actions described above.   Only 'yes' will be accepted to approve.
 Enter a value: yes
 
 Apply complete! Resources: 22 added, 0 changed, 0 destroyed.
-
+```
+9. SSH into the environment
+```
+aviadmin@avitools:~/cnostalgic-swartz# ls keys/
+generated-access-key-kid.pem  generated-access-key-kid.pub
+aviadmin@avitools:~/curly-computing-machine# ssh -i keys/generated-access-key-kid.pem [jumpbox public IP] -l ubuntu
 ```
