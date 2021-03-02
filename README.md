@@ -69,7 +69,59 @@ se_machine_type = "n1-standard-4"
 gcp_key_file is a json format file containing the authentication keys, refer to this article for more information:
 https://cloud.google.com/iam/docs/creating-managing-service-account-keys
 
-5. Update vars_pod.tf with appropriate VM template names for jumpbox, server and controller objects
+5. Update vars_infra.tf with appropriate VM template names for jumpbox and controller objects
 ```
+variable "jumpbox" {
+  type = map
+  description = "Jumpbox config"
+  default     = { 
+    machine_type = "n1-standard-2"
+    disk = "60"
+    image = "ubuntu-os-cloud/ubuntu-1604-lts"
+    disk_type = "pd-standard"
+  }
+}
+variable "controller" {
+  type = map
+  description = "GCP instance type for Avi controllers"
+  default     = { 
+    machine_type = "n1-standard-4"
+    disk = 128
+    disk_type = "pd-ssd" 
+  }
+}
+```
+6. Update vars_pod.tf with appropriate id and owner values
+```
+variable "id" {
+  description = "A prefix for the naming of the objects / instances"
+  default     = "avigcp"
+}
+
+variable "owner" {
+  description = "Sets the GCP Owner tag appropriately"
+  default     = "avi-tf"
+}
+```
+7. Prepare the terraform plan
+```
+root@avitools:~/nostalgic-swartz# terraform plan
+Plan: 22 to add, 0 to change, 0 to destroy.
+------------------------------------------------------------------------
+Note: You didn't specify an "-out" parameter to save this plan, so
+Terraform can't guarantee that exactly these actions will be performed
+if "terraform apply" is subsequently run
+```
+7. Apply the terraform plan
+```
+aviadmin@avitools:~/nostalgic-swartz# terraform apply
+
+Plan: 22 to add, 0 to change, 0 to destroy.
+Do you want to perform these actions?   Terraform will perform the
+actions described above.   Only 'yes' will be accepted to approve.
+
+Enter a value: yes
+
+Apply complete! Resources: 22 added, 0 changed, 0 destroyed.
 
 ```
