@@ -46,3 +46,30 @@ Terraform has been successfully initialized!
 root@avitools:~/nostalgic-swartz# cp sample_terraform_tfvars terraform.tfvars
 ```
 4. Fill out the required variables - terraform.tfvars
+
+```
+avi_admin_password = "AviNetworks123!"
+avi_default_password = "58NFaGDJm(PJH0G"
+avi_api_version = "20.1.3"
+pod_count = 1
+id = "avigcp"
+owner = 
+
+project_id = 
+gcp_region = 
+gcp_zone = 
+controller_image = 
+
+gcp_key_file = 
+vip_network_cidr = "192.168.1.0/24"
+domain_name = 
+se_machine_type = "n1-standard-4"
+
+```
+gcp_key_file is a json format file containing the authentication keys, refer to this article for more information:
+https://cloud.google.com/iam/docs/creating-managing-service-account-keys
+
+5. Update vars_pod.tf with appropriate VM template names for jumpbox, server and controller objects
+```
+
+```
