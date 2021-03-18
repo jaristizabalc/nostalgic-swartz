@@ -14,3 +14,7 @@ output "Controller_PublicIP" {
 output "Controller_PrivateIP" {
   value = google_compute_instance.avi-controller.*.network_interface.0
 }
+output "cluster_name" {
+  description = "Cluster name"
+  value       = module.gke.name
+}

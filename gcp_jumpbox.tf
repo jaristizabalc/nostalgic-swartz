@@ -10,7 +10,7 @@ data "template_file" "jumpbox_userdata" {
     vpc_id       = module.vpc-mgmt.network_self_link
     region       = var.gcp_region
     az           = var.gcp_zone
-    mgmt_net     = var.mgmt_subnet
+    mgmt_net     = var.mgmt_network["mgmt_subnet"]
     pkey         = tls_private_key.generated.private_key_pem
     pubkey       = tls_private_key.generated.public_key_openssh
   }
@@ -43,7 +43,7 @@ resource "google_compute_instance" "jumpbox" {
     lab_noshut                      = "jumpbox"
   }  
   network_interface {
-    subnetwork    = var.mgmt_subnet
+    subnetwork    = var.mgmt_network["mgmt_subnet"]
     access_config {
       // Include this section to give the VM an external ip address
     }
@@ -51,7 +51,7 @@ resource "google_compute_instance" "jumpbox" {
 
   #second and third interfaces to access other VPCs frontend/backend
   network_interface {
-    subnetwork    = var.client_subnet
+    subnetwork    = var.frontend_network["client_subnet"]
   }
   metadata = {
     user-data = data.template_file.jumpbox_userdata.rendered

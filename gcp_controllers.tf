@@ -15,12 +15,12 @@ data "template_file" "controller_config_data" {
     avi_default_pass = var.avi_default_password
     gcp_region = var.gcp_region
     se_project_id = var.project_id
-    frontend_data_vpc_subnet_name = var.se_subnet_frontend
-    management_vpc_subnet_name = var.se_mgmt_subnet
-    backend_data_vpc_subnet_name = var.se_backend_subnet
-    frontend_data_vpc_network_name = var.frontend_vpc
-    management_vpc_network_name = var.mgmt_vpc
-    backend_data_vpc_network_name = var.backend_vpc
+    frontend_data_vpc_subnet_name = var.frontend_network["se_subnet"]
+    management_vpc_subnet_name = var.mgmt_network["se_subnet"]
+    backend_data_vpc_subnet_name = var.backend_network["se_subnet"]
+    frontend_data_vpc_network_name = var.frontend_network["vpc_name"]
+    management_vpc_network_name = var.mgmt_network["vpc_name"]
+    backend_data_vpc_network_name = var.backend_network["vpc_name"]
     vip_network_cidr = var.vip_network_cidr
     domain_name = var.domain_name
     se_machine_type = var.se_machine_type
@@ -56,7 +56,7 @@ resource "google_compute_instance" "avi-controller" {
     lab_timezone       = var.lab_timezone
   }
   network_interface {
-    subnetwork    = var.mgmt_subnet
+    subnetwork    = var.mgmt_network["mgmt_subnet"]
     access_config {
       // Include this section to give the VM an external ip address
     }
