@@ -1,15 +1,15 @@
 module "gke_auth" {
   source = "terraform-google-modules/kubernetes-engine/google//modules/auth"
-  depends_on   = [module.gke]
+  depends_on   = [module.gke_cluster]
   project_id   = var.project_id
-  location     = module.gke.location
-  cluster_name = module.gke.name
+  location     = module.gke_cluster.location
+  cluster_name = module.gke_cluster.name
 }
 resource "local_file" "kubeconfig" {
   content  = module.gke_auth.kubeconfig_raw
   filename = "kubeconfig-${var.id}"
 }
-module "gke" {
+module "gke_cluster" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
   project_id             = var.project_id
   name                   = "${var.owner}-${var.id}-gke-cluster"
@@ -19,6 +19,7 @@ module "gke" {
   subnetwork             = module.vpc-gke.subnets_names[0]
   ip_range_pods          = var.gke_network["ip_range_pods"]
   ip_range_services      = var.gke_network["ip_range_services"]
+  enable_private_nodes   = true
   node_pools = [
     {
       name                      = "node-pool-${var.id}"
@@ -29,4 +30,18 @@ module "gke" {
       disk_size_gb              = var.gke_node_info["disk"]
     },
   ]
+}
+#Create K8s resources upon cluster creation
+resource "null_resource" "k8s-object-crration" {
+  depends_on = [module.gke_cluster] 
+  provisioner "local-exec" {
+    command = <<EOT
+      #!/bin/bash
+      kubectl --kubeconfig ${local_file.kubeconfig.filename} create -f k8s/apps/avinetworks.yaml
+      kubectl --kubeconfig ${local_file.kubeconfig.filename} create -f k8s/apps/dvwa.yaml
+      kubectl --kubeconfig ${local_file.kubeconfig.filename} create -f k8s/apps/hackazon.yaml
+      kubectl --kubeconfig ${local_file.kubeconfig.filename} create -f k8s/apps/juice.yaml
+      kubectl --kubeconfig ${local_file.kubeconfig.filename} create -f k8s/apps/kuard.yaml
+    EOT
+    }
 }

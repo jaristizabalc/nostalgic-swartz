@@ -153,7 +153,7 @@ module "net-firewall-mgmt" {
       rules = [
         {
           protocol = "tcp"
-          ports    = ["443"]
+          ports    = ["443","80"]
         }
       ]
       extra_attributes = {}
@@ -194,7 +194,7 @@ locals {
       rules = [
         {
           protocol = "tcp"
-          ports    = ["30000-32767"]
+          ports    = ["80","443","30000-32767"]
         },
         {
           protocol = "udp"
@@ -224,4 +224,23 @@ module "net-firewall-gke" {
     },
   ]
   custom_rules = local.custom_rules
+}
+module "net-firewall-frontend" {
+  source                  = "terraform-google-modules/network/google//modules/fabric-net-firewall"
+  project_id              = var.project_id
+  network                 = module.vpc-frontend.network_name
+  internal_ranges_enabled = true
+  internal_ranges         = [var.frontend_network["cidr"]]
+  internal_allow = [
+    {
+      protocol = "icmp"
+    },
+    {
+      protocol = "tcp",
+    },
+    {
+      protocol = "udp"
+      # all ports will be opened if `ports` key isn't specified
+    },
+  ]
 }

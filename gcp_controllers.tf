@@ -21,6 +21,8 @@ data "template_file" "controller_config_data" {
     frontend_data_vpc_network_name = var.frontend_network["vpc_name"]
     management_vpc_network_name = var.mgmt_network["vpc_name"]
     backend_data_vpc_network_name = var.backend_network["vpc_name"]
+    worker_cidr = var.gke_network["worker_cidr"]
+    backend_se_gw = cidrhost(cidrsubnet(var.backend_network["cidr"],8,1),1)
     vip_network_cidr = var.vip_network_cidr
     domain_name = var.domain_name
     se_machine_type = var.se_machine_type

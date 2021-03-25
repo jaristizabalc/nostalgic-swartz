@@ -20,7 +20,7 @@
   roles:
     - role: avinetworks.avisdk
   tasks:
-    - include_vars: config_vars.yaml
+    - include_vars: config_vars.yaml   
     - name: Check Avi Controller Status
       uri:
         url: "https://{{ avi_credentials.controller }}/api/initial-data"
@@ -162,5 +162,20 @@
         cloud_ref: "/api/cloud?name={{ gcp_cloud_name }}"
         avi_api_update_method: patch
         avi_api_patch_op: replace
-        instance_flavor: "{{ se_machine_type }}"
-
+        instance_flavor: "{{ se_machine_type }}" 
+    #Create static route, SE has multiple GWs since it has multiple data interfaces, and need to specify how to reach the GKE worker nodes     
+    - name: Create route for se backend network to reach GKE worker nodes (Services are Nodeport)
+      avi_vrfcontext:
+        avi_credentials: "{{ avi_credentials }}"
+        name: "global"
+        cloud_ref: "/api/cloud?name={{ gcp_cloud_name }}"
+        static_routes:
+          - prefix:
+              ip_addr:
+                addr: "{{worker_cidr.split('/')[0]}}"
+                type: V4
+              mask: "{{worker_cidr.split('/')[1]}}"
+            next_hop:
+              addr: "{{ backend_se_gw }}"
+              type: V4
+            route_id: '1'  

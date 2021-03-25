@@ -6,7 +6,9 @@ output "subnets" {
 output "Jumpbox_PublicIP" {
   value = google_compute_instance.jumpbox.network_interface.0.access_config.0.nat_ip
 }
-
+output "Jumpbox_PrivateIP" {
+  value = google_compute_instance.jumpbox.network_interface.0.network_ip
+}
 output "Controller_PublicIP" {
   value = google_compute_instance.avi-controller.*.network_interface.0.access_config.0.nat_ip
 }
@@ -14,7 +16,10 @@ output "Controller_PublicIP" {
 output "Controller_PrivateIP" {
   value = google_compute_instance.avi-controller.*.network_interface.0
 }
+output "Client_PrivateIP" {
+  value = google_compute_instance.client.network_interface.0.network_ip
+}
 output "cluster_name" {
   description = "Cluster name"
-  value       = module.gke.name
+  value       = module.gke_cluster.name
 }

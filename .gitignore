@@ -31,3 +31,8 @@ override.tf.json
 *.json
 keys/
 terraform.tfvars
+
+#This project specific
+kubeconfig-avigcp
+provisioning/config_vars.yaml
+.DS_Store

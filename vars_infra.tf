@@ -62,6 +62,7 @@ variable "domain_name" {
 variable "se_machine_type" {
   description = "Avi SE machine type"
 }
+#VM instances definitions
 variable "jumpbox" {
   type = map
   description = "Jumpbox config"
@@ -86,8 +87,9 @@ variable "server" {
   description = "GCP instance type for servers"
   default     = { 
     machine_type = "n1-standard-2"
-    disk = 20
+    disk = 10
     image = "ubuntu-os-cloud/ubuntu-1604-lts"
+    disk_type = "pd-standard"
   }
 }
 variable "gke_node_info" {
@@ -101,51 +103,3 @@ variable "gke_node_info" {
     locations = "us-west1-a,us-west1-b,us-west1-c"
   }
 }
-
-#variable "mgmt_subnet" {
-#  description = "MGMT subnet name"
-#  default = "mgmt-subnet"
-#}
-#variable "mgmt_vpc" {
-#  description = "VPC mgmt name"
-#  default = "jda-tf-mgmt-vpc"
-#
-#}
-#variable "se_mgmt_subnet" {
-#  description = "SE subnet name mgmt"
-#  default = "se-subnet-mgmt"
-#
-#}
-#variable "client_subnet" {
-#  description = "Client subnet name"
-#  default = "client-subnet"
-#}
-##
-#variable "se_subnet_frontend" {
-#  description = "SE subnet name frontend"
-#  default = "se-subnet-frontend"
-#
-#}
-#variable "frontend_vpc" {
-#  description = "VPC frontend name"
-#  default = "jda-tf-frontend-vpc"
-#
-#}
-#variable "app_subnet" {
-#  description = "Application/backend subnet name"
-#  default = "app-subnet"
-#}
-#variable "se_backend_subnet" {
-#  description = "SE subnet name backend"
-#  default = "se-subnet-backend"
-#
-#}
-#variable "backend_vpc" {
-#  description = "VPC backend name"
-#  default = "jda-tf-backend-vpc"
-#
-#}
-#variable "gke_vpc" {
-#  description = "The VPC network created to host the cluster in"
-#  default     = "gke-vpc"
-#}
