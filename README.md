@@ -216,3 +216,41 @@ Verify the services are running properly in the cluster:
 ```
 kubectl --kubeconfig "kubeconfig-${var.id}" get services
 ```
+12. Export kubeconfig variable to simplify commands:
+```
+export KUBECONFIG=kubeconfig-${var.id}
+```
+
+## AKO (Optional)
+Leverage AKO ingress controller, for more details visit https://avinetworks.com/docs/ako/1.3/avi-kubernetes-operator/
+AKO version tested: 1.3
+1. Install AKI via Helm: latest tarball at  https://helm.sh/docs/intro/install/
+```
+wget https://get.helm.sh/helm-v3.5.3-linux-amd64.tar.gz
+tar -zxvf helm-v3.5.3-linux-amd64.tar.gz
+mv linux-amd64/helm /usr/local/bin/helm
+helm repo add ako https://avinetworks.github.io/avi-helm-charts/charts/stable/ako
+```
+2. Create network space for AKO
+```
+kubectl create ns avi-system
+```
+3. Edit the config file ako/values.yaml
+Details of the values at https://github.com/avinetworks/avi-helm-charts/blob/master/charts/stable/ako/values.yaml
+The provided file has values matching the parameters created by this integration on the NSX-ALB controller, make sure to check the terraform outputs for the private IP of the controller and replace it on the values.yaml file
+```
+controllerHost: "[Controller private IP]"
+```
+3. Install AKO
+```
+helm install  ako/ako  --generate-name --version 1.3.1 -f values.yaml  --set ControllerSettings.controllerHost=[controller IP/name] --set avicredentials.username=admin --set avicredentials.password=[password] --namespace=avi-system
+```
+4. Verify AKO pod
+```
+kubectl get pds -n avi-system
+```
+5. Review AKO logs
+```
+kubectl logs -f -n avi-system ako-0
+```
+6. Ingress objects created on GKE will be discovered by AKO and mapped to NSX-ALB objects.

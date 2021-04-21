@@ -163,8 +163,8 @@
         avi_api_update_method: patch
         avi_api_patch_op: replace
         instance_flavor: "{{ se_machine_type }}" 
-    #Create static route, SE has multiple GWs since it has multiple data interfaces, and need to specify how to reach the GKE worker nodes     
-    - name: Create route for se backend network to reach GKE worker nodes (Services are Nodeport)
+    #Create static route, SE has multiple GWs since it has multiple data interfaces, and need to specify how to reach the GKE worker nodes and pods   
+    - name: Create route for se backend network to reach GKE worker nodes (Services are Nodeport) and PODs on GKE (AKO requirement)
       avi_vrfcontext:
         avi_credentials: "{{ avi_credentials }}"
         name: "global"
@@ -178,4 +178,16 @@
             next_hop:
               addr: "{{ backend_se_gw }}"
               type: V4
-            route_id: '1'  
+            route_id: '1'
+          - prefix:
+              ip_addr:
+                addr: "{{gke_pod_cidr.split('/')[0]}}"
+                type: V4
+              mask: "{{gke_pod_cidr.split('/')[1]}}"
+            next_hop:
+              addr: "{{ backend_se_gw }}"
+              type: V4
+            route_id: '2'  
+
+
+            

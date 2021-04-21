@@ -28,6 +28,7 @@ data "template_file" "controller_config_data" {
     se_machine_type = var.se_machine_type
     password = var.avi_admin_password
     api_version = var.avi_api_version
+    gke_pod_cidr = var.gke_network["ip_range_pods_cidr"]
   }
 }
 resource "local_file" "controller_vars" {

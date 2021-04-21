@@ -50,6 +50,8 @@ variable "gke_network" {
     ip_range_services = "gke-services-range"
     ip_range_services_cidr = "10.120.0.0/16"
     vpc_name = "jda-tf-gke-vpc"
+    cloud_router_name = "jda-tf-gke-crouter"
+    nat_gw = "jda-tf-gke-natgw"
   }
 }
 #Avi Specific

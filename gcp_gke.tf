@@ -20,6 +20,9 @@ module "gke_cluster" {
   ip_range_pods          = var.gke_network["ip_range_pods"]
   ip_range_services      = var.gke_network["ip_range_services"]
   enable_private_nodes   = true
+  http_load_balancing    = false          #for AKO to replace cloud native load balancer
+  network_policy         = true
+
   node_pools = [
     {
       name                      = "node-pool-${var.id}"
@@ -30,6 +33,13 @@ module "gke_cluster" {
       disk_size_gb              = var.gke_node_info["disk"]
     },
   ]
+  #node_pools_oauth_scopes = {
+  #  all = []
+  #
+  #  default-node-pool = [
+  #    "https://www.googleapis.com/auth/cloud-platform",
+  #  ]
+  #}
 }
 #Create K8s resources upon cluster creation
 resource "null_resource" "k8s-object-crration" {

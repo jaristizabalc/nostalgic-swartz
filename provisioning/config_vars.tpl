@@ -16,3 +16,4 @@ backend_se_gw: ${backend_se_gw}
 vip_network_cidr: ${vip_network_cidr}
 domain_name: ${domain_name}
 se_machine_type: ${se_machine_type}
+gke_pod_cidr: ${gke_pod_cidr}

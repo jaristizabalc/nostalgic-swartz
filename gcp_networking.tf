@@ -88,6 +88,20 @@ module "vpc-gke" {
     ]
   }
 }
+#Configure Cloud NAT to allow GKE nodes to reach the Internet (required for pulling images from dockerhub and AKO installation)
+module "cloud_router_gke" {
+  source  = "terraform-google-modules/cloud-router/google"
+  version = "~> 0.4"
+  project = var.project_id # Replace this with your project ID in quotes
+  name    = var.gke_network["cloud_router_name"]
+  network = var.gke_network["vpc_name"]
+  region  = var.gcp_region
+
+  nats = [{
+    name = var.gke_network["nat_gw"]    //restrict NAT sources to primary IPs only???
+  }]
+}
+
 #VPC Peerings
 module "peering-backend-gke" {
   source = "terraform-google-modules/network/google//modules/network-peering"
